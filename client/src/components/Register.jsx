@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Cookies from 'universal-cookie';
+import { motion } from 'framer-motion';
 
 function Register() {
   const navigate = useNavigate();
@@ -21,14 +22,15 @@ function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const {userName, password} = userData;
     try{
+      const {userName, password} = userData;
       const {data} = await axios.post('http://localhost:5000/register', {
         userName,
         password
       });
-      console.log(data);
+
       cookies.set('token', data);
+      
       toast.success(`${userName} registered sucessfully`, {
         position: "top-center",
         autoClose: 2000,
@@ -67,7 +69,7 @@ function Register() {
 
   return (
     <div className="h-screen flex justify-center bg-gradient-to-br from-[#010125] via-blue-800 to-[#010125]">
-        <div className='h-[300px] w-[350px] bg-white py-2 px-3 my-auto rounded-md'>
+        <motion.div initial={{opacity: 0, scale: 0 , position: 'absolute', top: "-50%", left: "-50%"}} animate={{opacity: 1, scale: 1, x: 0, top: "50%", left: "50%", transform: "translate(-50%, -50%)"}} transition={{duration: 1}} className='h-[300px] w-[350px] bg-white py-2 px-3 my-auto rounded-md'>
             <div className='text-center text-2xl font-bold border-b-2 pb-1'> Registration Form</div>
 
             <form onSubmit={handleSubmit}>
@@ -81,7 +83,7 @@ function Register() {
                     <input type="password" name="password" value={userData.password} onChange={handleChange} className='border-2 py-1 px-2 rounded-md' placeholder='Enter Password'/>
                 </div>
 
-                <button class="bg-gradient-to-bl from-[#010125] via-blue-800 to-[#010125] text-white hover:bg-white hover:from-white hover:to-white hover:text-[#010125] hover:border-[#010125] border-2 duration-1000 font-bold py-1 px-3 rounded">
+                <button type='submit' className="bg-gradient-to-bl from-[#010125] via-blue-800 to-[#010125] text-white hover:bg-white hover:from-white hover:to-white hover:text-[#010125] hover:border-[#010125] border-2 duration-1000 font-bold py-1 px-3 rounded">
                     Register
                 </button>
             </form>
@@ -89,7 +91,7 @@ function Register() {
             <div className='mt-2'>
               <p>Already have an account ? <NavLink to='/login' className='text-blue-900 hover:text-blue-600'>Login</NavLink></p>
             </div>
-        </div>
+        </motion.div>
         <ToastContainer />
     </div>
   )

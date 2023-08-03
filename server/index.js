@@ -8,18 +8,21 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const multer  = require('multer');
-const upload = multer({ dest: 'uploads/' });
 var fs = require('fs');
 const middleware = require('./middleware/middleware');
 const Post = require('./models/PostModel');
 
 connectToMongo();
 const app = express();
-app.use(cors({credentials: true, origin: 'http://127.0.0.1:5173'}));
+app.use(cors({credentials: true, origin: "http://localhost:5173"}));
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use('/uploads', express.static(__dirname + '/uploads'));
 
+// for multer
+const upload = multer({ dest: 'uploads/' });
+
+// Register route
 app.post('/register', async (req, res) => {
     const {userName, password} = req.body;
     
@@ -36,21 +39,19 @@ app.post('/register', async (req, res) => {
 
         //Storing user to database
         const user = await User.create({userName, password:hashedPass});
-
         jwt.sign({userName, id: user._id}, process.env.JWT_SECRET, {}, (err, token) => {
             if(err){
                 return res.status(500).json("Internal Server Error. Try again later");
             }
-
             user.save();
             res.status(200).json(token);
         });
-
     } catch (error) {
-        res.status(500).json("Internal Server Error. Try again later");
+        res.status(500).json("Internal Server Error. Try again later" + error);
     }
 });
 
+// Login route
 app.post('/login', async (req, res) => {
     try {
         const {userName, password} = req.body;
@@ -76,9 +77,7 @@ app.post('/login', async (req, res) => {
                     }, () => {});
 
                     //sending token to frontend
-                    // res.cookie('token', token);
                     res.status(200).json(token);
-                    // res.status(200).cookie('token', token, {httpOnly: true}).json(`${userName} logged sucessfully`);
                 });
             }else{
                 res.status(400).json("Password not match");
@@ -91,9 +90,8 @@ app.post('/login', async (req, res) => {
     }
 });
 
-
+// Profille route
 app.get('/profile', (req, res) => {
-    // const {token} = req.body;
     const token = req.headers.authorization;
     try {
         jwt.verify(token, process.env.JWT_SECRET, {}, (err, data) => {
@@ -108,6 +106,7 @@ app.get('/profile', (req, res) => {
     }
 });
 
+// Adding new post route
 app.post('/addpost', upload.single('file'), (req, res) => {
     
     try{
@@ -117,17 +116,17 @@ app.post('/addpost', upload.single('file'), (req, res) => {
                 return res.status(400).json(err);
             }
 
-            const {title, summary, content, token} = req.body;
+            const {title, summary, content} = req.body;
             const {originalname, path} = req.file;
             const parts = originalname.split('.');
-            const ext = parts[parts.length - 1];
-            fs.renameSync(path, path+ '.' + ext);
+            const extension = parts[parts.length - 1];
+            fs.renameSync(path, path+ '.' + extension);
             
             const postDoc = await Post.create({
                 title,
                 summary,
                 content,
-                coverImg: path+'.'+ext,
+                coverImg: path + '.' + extension,
                 author: data.id
             });
             postDoc.save();
@@ -138,11 +137,30 @@ app.post('/addpost', upload.single('file'), (req, res) => {
     }
 });
 
+// Geeting only my posts + authentication
+app.get('/getmyposts', (req, res) => {
+    const token = req.headers.authorization;
+
+    try{
+        jwt.verify(token, process.env.JWT_SECRET, {}, async (err, data) => {
+            if(err){
+                return res.status.apply(400).json(err);
+            }
+            const allPosts = await Post.find().populate('author', 'userName').sort({createdAt: -1});
+            res.status(200).json(allPosts);
+        })
+    }catch(error){
+        return res.status(500).json('Internal server Error. Try again later');
+    }
+});
+
+// Getting all pages
 app.get('/getAllPost', async (req, res) => {
     const allPosts = await Post.find().populate('author', 'userName').sort({createdAt: -1});
     res.status(200).json(allPosts);
 });
 
+// Getting details of specific post
 app.get('/post/:id', async (req, res) => {
     const {id} = req.params;
 
@@ -156,7 +174,6 @@ app.get('/post/:id', async (req, res) => {
 
 app.get('/edit/:id', (req, res) => {
     const {id} = req.params;
-
     res.status(200).json(id);
 });
 
@@ -210,6 +227,7 @@ app.put('/post/:id', upload.single('file'), async (req, res) => {
 
 });
 
+// Deleting post route
 app.delete('/delete/:id', (req, res) => {
     const {id} = req.params;
     

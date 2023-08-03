@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Cookies from 'universal-cookie';
+import { motion } from 'framer-motion';
 
 function Login() {
   const cookies = new Cookies();
@@ -21,17 +22,15 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const {userName, password} = userData;
+
     try{
+      const {userName, password} = userData;
       const {data} = await axios.post('http://localhost:5000/login', {
         userName,
         password,
       });
 
-      // localStorage.setItem('token', data);
       cookies.set('token', data);
-      // console.log(cookies.get('token'));
-      // console.log(localStorage.getItem('token'));
 
       toast.success(`${userName} logged sucessfully`, {
         position: "top-center",
@@ -72,7 +71,7 @@ function Login() {
 
   return (
     <div className="h-screen flex justify-center bg-gradient-to-br from-[#010125] via-blue-800 to-[#010125]">
-        <div className='h-[300px] w-[350px] bg-white py-2 px-3 my-auto rounded-md'>
+        <motion.div initial={{opacity: 0, scale: 0 , position: 'absolute', top: "-50%", left: "-50%"}} animate={{opacity: 1, scale: 1, x: 0, top: "50%", left: "50%", transform: "translate(-50%, -50%)"}} transition={{duration: 1}} className='h-[300px] w-[350px] bg-white py-2 px-3 my-auto rounded-md'>
             <div className='text-center text-2xl font-bold border-b-2 pb-1'> Login Form</div>
 
             <form onSubmit={handleSubmit}>
@@ -94,7 +93,7 @@ function Login() {
             <div className='mt-2'>
               <p>Don't have an account ? <NavLink to='/register' className='text-blue-900 hover:text-blue-600'>Register</NavLink></p>
             </div>
-        </div>
+        </motion.div>
         <ToastContainer />
     </div>
   )

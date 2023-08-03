@@ -11,6 +11,7 @@ import Login from './components/Login'
 import PostPage from './components/PostPage'
 import Register from './components/Register'
 import './index.css'
+import MyPosts from './components/MyPosts'
 
 function App() {
 
@@ -29,6 +30,13 @@ function App() {
           <>
             <Header />
             <About />
+            <Footer />
+          </>
+        }/>
+        <Route exact path='/myposts' element={
+          <>
+            <Header />
+            <MyPosts />
             <Footer />
           </>
         }/>

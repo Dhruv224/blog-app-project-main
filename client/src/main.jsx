@@ -6,11 +6,7 @@ import { UserContext } from './context/UserContext';
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  // <React.StrictMode>
-    // <Router forceRefresh>
-    <UserContext>
-      <App />
-    </UserContext>
-    // </Router>
-  // </React.StrictMode>,
+  <UserContext>
+    <App />
+  </UserContext>
 );
